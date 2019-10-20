@@ -9,7 +9,8 @@ export default class MovieList extends Component {
     return (
       <div style={{ marginBottom: 20 }}>
         <Grid container spacing={0} style={{ marginTop: 88 }}>
-          {movies.map((movie, idx) => <MovieCard movie={movie} key={idx} />)}
+          {movies &&
+            movies.map((movie, idx) => <MovieCard movie={movie} key={idx} />)}
         </Grid>
       </div>
     )

@@ -57,7 +57,8 @@ function App () {
   }
   const toggleType = async () => {
     let curType = type !== 'now_playing' ? 'now_playing' : 'top_rated'
-    let curUrl = `https://api.themoviedb.org/3/movie/${curType}?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed`
+    let curUrl = `https://api.themoviedb.org/3/movie/${curType}?api_key=${process
+      .env.REACT_APP_APIKEY}`
     let curPage = 1
     setType(curType)
     setPage(curPage)

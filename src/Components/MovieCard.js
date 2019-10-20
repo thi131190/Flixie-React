@@ -16,7 +16,8 @@ const MovieCard = props => {
   const [openVideo, setOpenVideo] = useState(false)
 
   const getDetails = async id => {
-    const url = `https://api.themoviedb.org/3/movie/${id}?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed&append_to_response=credits`
+    const url = `https://api.themoviedb.org/3/movie/${id}?api_key=${process.env
+      .REACT_APP_APIKEY}&append_to_response=credits`
     const results = await fetch(url)
     const data = await results.json()
     return data
