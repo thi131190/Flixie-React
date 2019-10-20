@@ -1,114 +1,99 @@
 import React, { useState, useEffect } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css'
-import MovieCard from './Components/MovieCard'
-// import NavBar from './Components/NavBar'
+import MovieList from './Components/MovieList'
+import NavBar from './Components/NavBar'
+import InfiniteScroll from 'react-infinite-scroller'
+import { CircularProgress } from '@material-ui/core'
 
 function App () {
-  let url = `https://api.themoviedb.org/3/movie/now_playing?api_key=${process
-    .env.REACT_APP_APIKEY}`
-  const [apiUrl, setApiUrl] = useState(url)
+  const [apiUrl, setApiUrl] = useState(
+    `https://api.themoviedb.org/3/movie/now_playing?api_key=${process.env
+      .REACT_APP_APIKEY}`
+  )
   const [page, setPage] = useState(1)
   const [movies, setMovies] = useState([])
+  const [query, setQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [type, setType] = useState('now_playing')
 
-  const getData = async () => {
-    // console.log(page)
-    console.log(`${apiUrl}&page=${page}`)
-    const response = await fetch(`${apiUrl}&page=${page}`)
+  useEffect(() => {
+    fetchMovies()
+    // eslint-disable-next-line
+  }, []);
+
+  const getData = async (curUrl, curPage) => {
+    // console.log(curPage)
+    // console.log(`${apiUrl}&page=${curPage}`)
+    await sleep(800)
+
+    const response = await fetch(`${curUrl}&page=${curPage}`)
     const data = await response.json()
-    console.log(data.results)
+    setPage(curPage + 1)
+    setApiUrl(curUrl)
+    setIsLoading(false)
     return data.results
   }
 
   const fetchMovies = async () => {
-    setMovies(movies.concat(await getData()))
-    setPage(page + 1)
+    setIsLoading(true)
+    setMovies(movies.concat(await getData(apiUrl, page)))
   }
-  // const loadMore = async () => {
-  //   setMovies(movies.concat(await getData()))
-  //   setPage(page + 1)
-  // }
 
   const handleSearch = async e => {
     e.preventDefault()
-    let query = document.getElementById('keyword').value
-    url =
+    setIsLoading(true)
+    let url =
       query === ''
-        ? url
+        ? `https://api.themoviedb.org/3/movie/now_playing?api_key=${process.env
+            .REACT_APP_APIKEY}`
         : `https://api.themoviedb.org/3/search/movie?api_key=${process.env
             .REACT_APP_APIKEY}&query=${query}`
-
-            console.log('wqjeue', url)
-    setApiUrl(url)
-    setPage(1)
-    setMovies(await getData())
+    setMovies(await getData(url, 1))
   }
 
-  useEffect(() => {
-    fetchMovies()
-  }, [])
+  const sleep = ms => {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+  const toggleType = async () => {
+    let curType = type !== 'now_playing' ? 'now_playing' : 'top_rated'
+    let curUrl = `https://api.themoviedb.org/3/movie/${curType}?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed`
+    let curPage = 1
+    setType(curType)
+    setPage(curPage)
+    setIsLoading(true)
+    setApiUrl(curUrl)
+    setMovies(await getData(curUrl, curPage))
+  }
+
+  let content = (
+    <MovieList
+      className='my-10'
+      movies={movies}
+      handleLoadMoreClick={() => fetchMovies()}
+      isLoading={isLoading}
+    />
+  )
 
   return (
     <div className='App'>
-      <div>
-        <nav className='navbar navbar-expand-lg navbar-light bg-light'>
-          <a className='navbar-brand' href='#'>
-            Navbar
-          </a>
-          <button
-            className='navbar-toggler'
-            type='button'
-            data-toggle='collapse'
-            data-target='#navbarSupportedContent'
-            aria-controls='navbarSupportedContent'
-            aria-expanded='false'
-            aria-label='Toggle navigation'
-          >
-            <span className='navbar-toggler-icon' />
-          </button>
-
-          <div className='collapse navbar-collapse' id='navbarSupportedContent'>
-            <ul className='navbar-nav mr-auto'>
-              <li className='nav-item active'>
-                <a className='nav-link' href='#'>
-                  Home <span className='sr-only'>(current)</span>
-                </a>
-              </li>
-            </ul>
-            <form
-              onSubmit={e => handleSearch(e)}
-              className='form-inline my-2 my-lg-0'
-            >
-              <input
-                className='form-control mr-sm-2'
-                type='search'
-                placeholder='Search'
-                aria-label='Search'
-                id='keyword'
-              />
-              <button
-                className='btn btn-outline-success my-2 my-sm-0'
-                type='submit'
-              >
-                Search
-              </button>
-            </form>
-          </div>
-        </nav>
-      </div>
-      <div className='container my-5'>
-        <div className='row'>
-          {movies.length > 0 &&
-            movies.map((movie, i) => <MovieCard key={i} movie={movie} />)}
-        </div>
-        <div className='row'>
-          <button
-            onClick={() => fetchMovies()}
-            className='btn btn-primary btn-block'
-          >
-            Load more
-          </button>
-        </div>
+      <NavBar
+        handleSearch={handleSearch}
+        query={query}
+        page={page}
+        setQuery={setQuery}
+        type={type}
+        toggleType={toggleType}
+      />
+      <div style={{ paddingBottom: 20 }}>
+        <InfiniteScroll
+          pageStart={0}
+          loadMore={() => fetchMovies()}
+          hasMore
+          loader={<CircularProgress />}
+        >
+          {content}
+        </InfiniteScroll>
       </div>
     </div>
   )
