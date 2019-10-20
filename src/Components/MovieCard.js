@@ -51,7 +51,7 @@ const MovieCard = props => {
   }
 
   let imgUrl =
-    movie.poster_path === null
+    movie && movie.poster_path === null
       ? DefaultImage
       : `https://image.tmdb.org/t/p/w342/${movie.poster_path}`
 
